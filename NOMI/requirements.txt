@@ -1,0 +1,23 @@
+# ── NOMI — Python dependencies ─────────────────────────────────────────────────
+# `python setup.py` installs these for you. Lower bound = what NOMI is built
+# against; upper bound stops the next MAJOR release from breaking a fresh clone.
+
+# ── Core: interface and Jarvis ────────────────────────────────────────────────
+PySide6>=6.6,<7
+anthropic>=0.40,<1
+python-dotenv>=1.0,<2
+
+# ── Voice in: microphone, push-to-talk, "Hey Jarvis" ──────────────────────────
+# PyAudio needs PortAudio first:  macOS  brew install portaudio
+#                                 Linux  sudo apt install portaudio19-dev
+# Without these NOMI still runs; the mic buttons just stay hidden.
+SpeechRecognition>=3.10,<4
+PyAudio>=0.2.14
+
+# ── Nice to have ──────────────────────────────────────────────────────────────
+pynput>=1.7,<2          # global Ctrl+Space (otherwise it works inside the window)
+psutil>=5.9,<8          # CPU / memory / battery in get_system_status
+
+# Voice out uses the voices already on your computer: `say` on macOS,
+# Windows speech on Windows, espeak-ng on Linux (sudo apt install espeak-ng).
+# The phone dashboard uses only the standard library: nothing to install.
