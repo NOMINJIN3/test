@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>NOMI</title>
+<style>
+:root{--bg:#03070d;--panel:#08111e;--panel2:#0e1c30;--line:#16324d;--line2:#2a6aa3;--fg:#dceeff;--muted:#6f8aa6;--dim:#3f556c;--accent:#4fb3ff;--accent2:#9fdcff;--ok:#5fe0b0;--warn:#ff7b6b;--ink:#04121f;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:radial-gradient(700px 500px at 50% 0%,#071629,var(--bg) 70%) fixed;color:var(--fg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;padding:max(14px,env(safe-area-inset-top)) 16px calc(150px + env(safe-area-inset-bottom))}
+header{text-align:center;margin:6px 0 16px}
+header h1{margin:0;font-size:26px;letter-spacing:.06em}
+header h1 em{font-style:normal;font-weight:400;color:var(--accent)}
+header .sub{font:500 12px var(--mono);letter-spacing:.2em;color:var(--muted)}
+.status{display:inline-flex;gap:6px;align-items:center;font:500 11px var(--mono);letter-spacing:.14em;color:var(--muted);margin-top:6px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px var(--ok)}
+.dot.off{background:var(--warn);box-shadow:none}.dot.busy{background:var(--accent);animation:p .7s infinite alternate}
+@keyframes p{to{opacity:.3}}
+section{background:var(--panel);border:1px solid var(--line);padding:14px;margin-bottom:12px}
+h2{margin:0 0 10px;font:600 12px var(--mono);letter-spacing:.22em;color:var(--fg);display:flex;align-items:center;gap:8px}
+h2 b{color:var(--accent);font-weight:600}
+h2 .sp{flex:1}
+.reply .q{font:12px var(--mono);color:var(--muted);margin-bottom:4px;overflow-wrap:anywhere}
+.reply .a{white-space:pre-wrap;overflow-wrap:anywhere;font-size:16px}
+.reply .a.wait{color:var(--muted);font:13px var(--mono)}
+.reply .err{color:var(--warn);font-size:13px;margin-top:6px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line2);background:var(--panel2);color:var(--fg);padding:9px 12px;font:600 13px var(--mono);display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:44%}
+.chip small{font:500 10px var(--mono);letter-spacing:.1em;color:var(--accent);text-transform:uppercase}
+.chip:active{background:#12304f}
+ul{list-style:none;margin:0;padding:0}
+li{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+li:last-child{border-bottom:0}
+li .t{flex:1;min-width:0;overflow-wrap:anywhere}
+li.done .t{color:var(--muted);text-decoration:line-through}
+input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent);flex:none}
+.tm{font:600 12px var(--mono);border:1px solid var(--line);padding:2px 6px;flex:none}
+.run{border:1px solid var(--line2);background:none;color:var(--accent);font:600 12px var(--mono);padding:6px 10px}
+.add{display:flex;gap:8px;margin-top:10px}
+.add input{flex:1;min-width:0;background:#02060c;border:1px solid var(--line);color:var(--fg);padding:10px;font:15px system-ui,sans-serif}
+button{cursor:pointer}
+.btn{background:var(--accent);color:var(--ink);border:0;font:700 13px var(--mono);letter-spacing:.08em;padding:10px 14px}
+.btn.stop{background:var(--warn)}
+.ghost{background:none;border:1px solid var(--line2);color:var(--fg);font:600 11px var(--mono);letter-spacing:.08em;padding:6px 10px}
+.bar{position:fixed;left:0;right:0;bottom:0;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:rgba(3,7,13,.96);border-top:1px solid var(--line);display:flex;gap:8px}
+.bar textarea{flex:1;min-width:0;resize:none;height:48px;background:rgba(8,20,36,.9);border:1px solid var(--line2);color:var(--fg);font:16px system-ui,sans-serif;padding:12px}
+.bar textarea:focus,.add input:focus{outline:2px solid var(--accent);outline-offset:-1px}
+.empty{color:var(--muted);font-size:14px}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line2);padding:8px 14px;font-size:14px;max-width:90%}
+</style>
+</head>
+<body>
+<header>
+  <h1>⬡ NOMI <em>Agentic OS</em></h1>
+  <div class="sub" id="who">…</div>
+  <div class="status"><span class="dot" id="dot"></span><span id="st">CONNECTING</span></div>
+</header>
+
+<section class="reply" aria-live="polite">
+  <h2><b>JARVIS</b><span class="sp"></span><button class="ghost" id="undo" hidden>↩ UNDO</button></h2>
+  <div class="q" id="q"></div>
+  <div class="a" id="a">Ask Jarvis anything below. He answers here and out loud on your computer.</div>
+  <div class="err" id="err" hidden></div>
+</section>
+
+<section>
+  <h2>⚡ SKILLS DECK</h2>
+  <div class="chips" id="skills"></div>
+</section>
+
+<section>
+  <h2>☑ TASKS <span class="sp"></span><span id="tcount" style="color:var(--muted);font-weight:500"></span></h2>
+  <ul id="tasks"></ul>
+  <form class="add" id="addTask"><label for="newTask" hidden>New task</label><input id="newTask" placeholder="Add a task" autocomplete="off"><button class="btn" type="submit">ADD</button></form>
+</section>
+
+<section>
+  <h2>◷ ROUTINES</h2>
+  <ul id="routines"></ul>
+</section>
+
+<section>
+  <h2>▤ SECOND BRAIN <span class="sp"></span><button class="ghost" id="logout">SIGN OUT</button></h2>
+  <ul id="notes"></ul>
+</section>
+
+<form class="bar" id="cmd">
+  <label for="msg" hidden>Message Jarvis</label>
+  <textarea id="msg" placeholder="Ask Jarvis anything…" enterkeyhint="send"></textarea>
+  <button class="btn" id="send" type="submit">SEND</button>
+</form>
+
+<script>
+const $ = id => document.getElementById(id);
+let state = null, timer = null, sending = false;
+const el = (tag, attrs = {}, ...kids) => { const e = document.createElement(tag); for (const k in attrs) { if (k.startsWith("on")) e.addEventListener(k.slice(2), attrs[k]); else if (k === "class") e.className = attrs[k]; else e.setAttribute(k, attrs[k]); } kids.forEach(c => c != null && e.append(c)); return e; };
+const toast = msg => { const t = el("div", { class: "toast", role: "status" }, msg); document.body.append(t); setTimeout(() => t.remove(), 2600); };
+
+async function api(path, body) {
+  const r = await fetch(path, body === undefined ? {} : { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  if (r.status === 401) { location.href = "/login"; throw new Error("login"); }
+  return r.json();
+}
+async function act(path, body) {
+  try { const d = await api(path, body); if (d.ok === false && d.error) toast(d.error); if (d.message) toast(d.message); await refresh(); return d; }
+  catch (e) { if (e.message !== "login") toast("Can't reach NOMI."); }
+}
+
+function render(s) {
+  state = s;
+  $("who").textContent = (s.family ? s.family + "  |  " : "") + s.user;
+  const busy = s.live.busy;
+  $("dot").className = "dot" + (!s.online ? " off" : busy ? " busy" : "");
+  $("st").textContent = !s.online ? "JARVIS OFFLINE" : busy ? "PROCESSING" : "ONLINE";
+  if (s.live.q) $("q").textContent = "› " + s.live.q;
+  if (s.live.q || s.live.a) {
+    const a = $("a"); a.textContent = busy && !s.live.a ? "Processing…" : s.live.a; a.classList.toggle("wait", busy && !s.live.a);
+  }
+  $("err").hidden = !(s.live.err || (!s.online && s.problem));
+  $("err").textContent = s.live.err || s.problem || "";
+  $("send").textContent = busy ? "STOP" : "SEND"; $("send").classList.toggle("stop", busy);
+  $("undo").hidden = !s.can_undo; $("undo").title = s.undo_label ? "Undo " + s.undo_label : "";
+
+  $("skills").replaceChildren(...(s.skills.length ? s.skills.map(k => el("button", { class: "chip", type: "button", onclick: () => act("/api/skill", { id: k.id }) }, "▶ /" + k.name, el("small", {}, k.model + " · " + k.effort))) : [el("span", { class: "empty" }, "No skills yet.")]));
+  const open = s.tasks.filter(t => !t.done).length;
+  $("tcount").textContent = open + " OPEN";
+  $("tasks").replaceChildren(...(s.tasks.length ? s.tasks.map(t => { const cb = el("input", { type: "checkbox", "aria-label": "Done: " + t.text }); cb.checked = t.done; cb.onchange = () => act("/api/task/toggle", { id: t.id });
+    return el("li", { class: t.done ? "done" : "" }, cb, el("span", { class: "t" }, t.text)); }) : [el("li", {}, el("span", { class: "empty" }, "No tasks."))]));
+  $("routines").replaceChildren(...(s.routines.length ? s.routines.map(r => el("li", {}, el("span", { class: "tm" }, r.time), el("span", { class: "t" }, r.name), el("button", { class: "run", type: "button", onclick: () => act("/api/routine", { id: r.id }) }, "RUN"))) : [el("li", {}, el("span", { class: "empty" }, "No routines."))]));
+  $("notes").replaceChildren(...(s.notes.length ? s.notes.map(n => el("li", {}, el("span", { class: "t" }, n.title || "Untitled"))) : [el("li", {}, el("span", { class: "empty" }, "No notes."))]));
+}
+
+async function refresh() {
+  clearTimeout(timer);
+  try { render(await api("/api/state")); }
+  catch (e) { if (e.message !== "login") { $("dot").className = "dot off"; $("st").textContent = "NOMI NOT REACHABLE"; } }
+  timer = setTimeout(refresh, state && state.live.busy ? 700 : 3000);
+}
+
+$("cmd").addEventListener("submit", async e => {
+  e.preventDefault();
+  if (state && state.live.busy) return act("/api/stop", {});
+  const text = $("msg").value.trim(); if (!text || sending) return;
+  sending = true; $("msg").value = "";
+  $("q").textContent = "› " + text; $("a").textContent = "Processing…"; $("a").classList.add("wait");
+  await act("/api/send", { text }); sending = false;
+});
+$("msg").addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); $("cmd").requestSubmit(); } });
+$("addTask").addEventListener("submit", e => { e.preventDefault(); const t = $("newTask").value.trim(); if (!t) return; $("newTask").value = ""; act("/api/task", { text: t }); });
+$("undo").onclick = () => act("/api/undo", {});
+$("logout").onclick = async () => { await fetch("/api/logout", { method: "POST" }); location.href = "/login"; };
+document.addEventListener("visibilitychange", () => { if (!document.hidden) refresh(); });
+refresh();
+</script>
+</body>
+</html>
